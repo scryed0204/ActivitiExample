@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/test">
+  <process id="ExampleProcess" name="簽核流程範例" isExecutable="true">
+    <startEvent id="startevent1" name="Start">
+      <extensionElements>
+        <activiti:formProperty id="initiator" name="起案人" type="string" variable="initiator" required="true"></activiti:formProperty>
+        <activiti:formProperty id="supervisor" name="直屬主管" type="string" variable="supervisor" required="true"></activiti:formProperty>
+        <activiti:formProperty id="manager" name="經理" type="string" variable="supervisor" required="true"></activiti:formProperty>
+        <activiti:formProperty id="amount" name="金額" type="long" variable="amount" required="true"></activiti:formProperty>
+        <activiti:executionListener event="start" class="org.activiti.example.bpmn.listener.ExampleStartEventListener"></activiti:executionListener>
+      </extensionElements>
+    </startEvent>
+    <userTask id="directSupervisorReview" name="直屬主管審核" activiti:assignee="${supervisor}">
+      <extensionElements>
+        <activiti:formProperty id="decision" name="決議" type="string" variable="decision" required="true"></activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <userTask id="managerReview" name="經理審核" activiti:assignee="${manager}">
+      <extensionElements>
+        <activiti:formProperty id="decision" name="決議" type="string" variable="decision" required="true"></activiti:formProperty>
+      </extensionElements>
+    </userTask>
+    <endEvent id="endevent1" name="流程結束"></endEvent>
+    <userTask id="initiatorReview" name="申請人調整" activiti:assignee="${initiator}">
+      <extensionElements>
+        <activiti:formProperty id="decision" name="決議" type="string" variable="decision" required="true"></activiti:formProperty>
+        <activiti:formProperty id="amount" name="數量" type="long" variable="amount"></activiti:formProperty>
+        <activiti:taskListener event="create" class="org.activiti.example.bpmn.listener.ExampleInitiatorReviewListener"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="flow1" sourceRef="startevent1" targetRef="directSupervisorReview"></sequenceFlow>
+    <sequenceFlow id="flow2" sourceRef="directSupervisorReview" targetRef="e_gateway_supervisor"></sequenceFlow>
+    <sequenceFlow id="flow3" sourceRef="managerReview" targetRef="e_gateway_manager"></sequenceFlow>
+    <exclusiveGateway id="e_gateway_supervisor" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow6" name="金額大於10萬" sourceRef="e_gateway_supervisor" targetRef="managerReview">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${decision == "approve" && amount > 100000}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow7" name="金額未大於10萬" sourceRef="e_gateway_supervisor" targetRef="endevent1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${decision == "approve" && amount <= 100000}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow8" name="退回申請人" sourceRef="e_gateway_supervisor" targetRef="initiatorReview">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${decision == "reject"}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="e_gateway_manager" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow9" name="核准" sourceRef="e_gateway_manager" targetRef="endevent1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${decision == "approve"}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow10" name="退回申請人" sourceRef="e_gateway_manager" targetRef="initiatorReview">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${decision == "reject"}]]></conditionExpression>
+    </sequenceFlow>
+    <exclusiveGateway id="e_gateway_applicant" name="Exclusive Gateway"></exclusiveGateway>
+    <sequenceFlow id="flow13" name="重送" sourceRef="e_gateway_applicant" targetRef="directSupervisorReview">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${decision == "approve"}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow14" sourceRef="initiatorReview" targetRef="e_gateway_applicant"></sequenceFlow>
+    <endEvent id="terminateendevent1" name="TerminateEndEvent">
+      <terminateEventDefinition></terminateEventDefinition>
+    </endEvent>
+    <sequenceFlow id="flow15" name="終止" sourceRef="e_gateway_applicant" targetRef="terminateendevent1">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${decision == "terminate"}]]></conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_ExampleProcess">
+    <bpmndi:BPMNPlane bpmnElement="ExampleProcess" id="BPMNPlane_ExampleProcess">
+      <bpmndi:BPMNShape bpmnElement="startevent1" id="BPMNShape_startevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="110.0" y="120.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="directSupervisorReview" id="BPMNShape_directSupervisorReview">
+        <omgdc:Bounds height="55.0" width="105.0" x="210.0" y="110.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="managerReview" id="BPMNShape_managerReview">
+        <omgdc:Bounds height="55.0" width="105.0" x="530.0" y="110.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="780.0" y="120.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="initiatorReview" id="BPMNShape_initiatorReview">
+        <omgdc:Bounds height="55.0" width="105.0" x="358.0" y="230.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="e_gateway_supervisor" id="BPMNShape_e_gateway_supervisor">
+        <omgdc:Bounds height="40.0" width="40.0" x="390.0" y="117.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="e_gateway_manager" id="BPMNShape_e_gateway_manager">
+        <omgdc:Bounds height="40.0" width="40.0" x="680.0" y="117.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="e_gateway_applicant" id="BPMNShape_e_gateway_applicant">
+        <omgdc:Bounds height="40.0" width="40.0" x="242.0" y="237.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="terminateendevent1" id="BPMNShape_terminateendevent1">
+        <omgdc:Bounds height="35.0" width="35.0" x="112.0" y="240.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="145.0" y="137.0"></omgdi:waypoint>
+        <omgdi:waypoint x="210.0" y="137.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+        <omgdi:waypoint x="315.0" y="137.0"></omgdi:waypoint>
+        <omgdi:waypoint x="390.0" y="137.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
+        <omgdi:waypoint x="635.0" y="137.0"></omgdi:waypoint>
+        <omgdi:waypoint x="680.0" y="137.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow6" id="BPMNEdge_flow6">
+        <omgdi:waypoint x="430.0" y="137.0"></omgdi:waypoint>
+        <omgdi:waypoint x="530.0" y="137.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="72.0" x="429.0" y="120.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow7" id="BPMNEdge_flow7">
+        <omgdi:waypoint x="410.0" y="117.0"></omgdi:waypoint>
+        <omgdi:waypoint x="410.0" y="53.0"></omgdi:waypoint>
+        <omgdi:waypoint x="797.0" y="53.0"></omgdi:waypoint>
+        <omgdi:waypoint x="797.0" y="120.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="84.0" x="500.0" y="41.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow8" id="BPMNEdge_flow8">
+        <omgdi:waypoint x="410.0" y="157.0"></omgdi:waypoint>
+        <omgdi:waypoint x="409.0" y="205.0"></omgdi:waypoint>
+        <omgdi:waypoint x="410.0" y="230.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="60.0" x="411.0" y="179.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow9" id="BPMNEdge_flow9">
+        <omgdi:waypoint x="720.0" y="137.0"></omgdi:waypoint>
+        <omgdi:waypoint x="780.0" y="137.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="729.0" y="120.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow10" id="BPMNEdge_flow10">
+        <omgdi:waypoint x="700.0" y="157.0"></omgdi:waypoint>
+        <omgdi:waypoint x="699.0" y="257.0"></omgdi:waypoint>
+        <omgdi:waypoint x="463.0" y="257.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="60.0" x="541.0" y="239.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow13" id="BPMNEdge_flow13">
+        <omgdi:waypoint x="262.0" y="237.0"></omgdi:waypoint>
+        <omgdi:waypoint x="262.0" y="165.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="267.0" y="201.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow14" id="BPMNEdge_flow14">
+        <omgdi:waypoint x="358.0" y="257.0"></omgdi:waypoint>
+        <omgdi:waypoint x="282.0" y="257.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow15" id="BPMNEdge_flow15">
+        <omgdi:waypoint x="242.0" y="257.0"></omgdi:waypoint>
+        <omgdi:waypoint x="147.0" y="257.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="24.0" x="184.0" y="240.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
