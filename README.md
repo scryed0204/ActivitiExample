@@ -1,6 +1,6 @@
-# Example Project For Building Activiti Developing Environment And Unit Test
+# Example Project For Developing Activiti BPMN
 
-This project is an example project taht built with Eclipse and its plugin (Activiti BPMN Designer).
+This is an example about building a develop environment for Activiti project with Eclipse and Activiti BPMN Designer(plugin).
 
 ### Prerequisites
 
